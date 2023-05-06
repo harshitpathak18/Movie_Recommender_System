@@ -8,11 +8,11 @@ import gzip
 st.set_page_config(layout="wide")
 
 movies_dict=pickle.load(open('movies_dict.pkl','rb'))
-# similarity=pickle.load(open('similarity.pkl','rb'))
+similarity=pickle.load(open('similarity.pkl','rb'))
 movies = pd.DataFrame(movies_dict)
 
-with gzip.open('similarity.pkl.gz', 'rb') as f:
-    similarity = pickle.load(f)
+# with gzip.open('similarity1.pkl.gz', 'rb') as f:
+#     similarity = pickle.load(f)
 
 
 def fetch_poster(movie_id):
@@ -36,6 +36,30 @@ def fetch_detail(movie_id):
            }
     return detail
 
+def fetch_cast(movie_id):
+    response=requests.get(f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=96aef6c0d373ea579771046d96e72e06&append_to_response=credits")
+    data=response.json()
+    name=[]
+    image=[]
+    for i in data['credits']['cast'][0:5]:
+        name.append(i['name'])
+        image.append("https://image.tmdb.org/t/p/w600_and_h900_bestv2"+i['profile_path'])
+        
+    return dict({"Name":name,"Image":image})
+
+def fetch_director(movie_id):
+    response=requests.get(f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=96aef6c0d373ea579771046d96e72e06&append_to_response=credits")
+    data=response.json()
+    director_name=[]
+    director_image=[]
+    for i in data['credits']['crew']:
+        if i['job']=='Director':
+            director_name.append(i['name'])
+            director_image.append("https://image.tmdb.org/t/p/w600_and_h900_bestv2"+i['profile_path'])
+            
+            break
+    return dict({"Name":director_name,"Image":director_image})
+
 def recommend(movie):
     movie_index=movies[movies['title']==movie].index[0] 
     distances=similarity[movie_index]
@@ -45,6 +69,8 @@ def recommend(movie):
     recommended_movies_poster=[]
     recommended_movies_trailer=[]
     recommended_movies_details=[]
+    casts=[]
+    director=[]
 
     for i in movies_list:
         # fetch youtube video
@@ -59,7 +85,14 @@ def recommend(movie):
         # fetching other details
         recommended_movies_details.append(fetch_detail(movies.iloc[i[0]].id))
 
-    return recommended_movies,recommended_movies_poster,recommended_movies_trailer,recommended_movies_details
+        # fetching cast
+        casts.append(fetch_cast(movies.iloc[i[0]].id))
+
+        # fetching director
+        director.append(fetch_director(movies.iloc[i[0]].id))
+
+
+    return recommended_movies,recommended_movies_poster,recommended_movies_trailer,recommended_movies_details,casts,director
 
 
 st.title("Movie Recommender System")
@@ -70,7 +103,7 @@ movie=st.selectbox("Select a movie",movies['title'].values)
 if st.button("Recommend"):
     st.subheader(f"Movies like {movie}")
 
-    title,poster,trailer,detail=recommend(movie)
+    title,poster,trailer,detail,casts,directors=recommend(movie)
 
     for i in range(5):
         st.write("")
@@ -90,6 +123,36 @@ if st.button("Recommend"):
                 st.markdown( f"Rating - :star2: {detail[i]['Rating']}")
 
                 st.write(f"Genre - {', '.join(detail[i]['Genres'])}")
+
+                st.subheader("Cast:")
+                col1,col2,col3,col4,col5=st.columns(5)
+                
+                with col1:
+                    st.image(casts[i]['Image'][0])
+                    st.write(casts[i]['Name'][0])
+
+                with col2:
+                    st.image(casts[i]['Image'][1])
+                    st.write(casts[i]['Name'][1])
+
+                with col3:
+                    st.image(casts[i]['Image'][2])
+                    st.write(casts[i]['Name'][2])
+
+                with col4:
+                    st.image(casts[i]['Image'][3])
+                    st.write(casts[i]['Name'][3])
+
+                with col5:
+                    st.image(casts[i]['Image'][4])
+                    st.write(casts[i]['Name'][4])
+
+                st.subheader("Director:")
+                col1,col2,col3,col4,col5=st.columns(5)
+                with col1:
+                    st.image(directors[i]['Image'][0])
+                    st.write(directors[i]['Name'][0])
+
 
         with tab2:
             st.subheader(f"Trailer - {title[i]}") 
