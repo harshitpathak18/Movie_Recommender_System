@@ -1,4 +1,4 @@
-from streamlit_player import st_player
+# from streamlit_player import st_player
 import streamlit as st
 import pickle
 import pandas as pd
