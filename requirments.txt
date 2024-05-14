@@ -1,0 +1,6 @@
+streamlit
+streamlit-player
+pickle
+pandas
+requests
+gzip
