@@ -8,7 +8,8 @@ import gzip
 st.set_page_config(layout="wide")
 
 movies_dict=pickle.load(open('movies_dict.pkl','rb'))
-# similarity=pickle.load(open('similarity.pkl','rb'))
+similarity=pickle.load(open('similarity.pkl','rb'))
+
 movies = pd.DataFrame(movies_dict)
 
 with gzip.open('similarity1.pkl.gz', 'rb') as f:
