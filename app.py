@@ -113,7 +113,8 @@ if st.button("Recommend"):
             col1,col2=st.columns(2)
 
             with col1:
-                st.image(poster[i])
+                # st.image(poster[i])
+                st.image(poster[i % len(poster)])
             with col2:
                 st.subheader(title[i])            
                 
